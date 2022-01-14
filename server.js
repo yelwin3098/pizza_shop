@@ -3,6 +3,7 @@ const express=require('express');
 const app=express();
 const ejs=require('ejs');
 const path=require('path');
+const bodyParser=require('body-parser')
 const expressLayout=require('express-ejs-layouts')
 const PORT=process.env.PORT || 3300;
 const mongose=require('mongoose');
@@ -47,9 +48,8 @@ app.use(flash())
 
 //Asset 
 app.use(express.static('public'));
-app.use(express.urlencoded({extended:false}))
-app.use(express.json());
-
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
 //Global middleawre
 app.use((req,res,next)=>{
     res.locals.session=req.session;
@@ -65,6 +65,22 @@ app.set('view engine','ejs')
 require('./routes/web')(app);
 
 
-app.listen(PORT,()=>{
-    console.log(`Listening on port ${PORT}`);
-})
+const server = app.listen(PORT, () => {
+    console.log(`Server is listening on port ${PORT}`);
+  });
+  
+  // Socket
+  const io = require('socket.io')(server);
+  io.on('connection', (socket) => {
+      socket.on('join', (orderId) => {
+          socket.join(orderId);
+      });
+  });
+  
+//   eventEmitter.on('orderUpdated', (data) => {
+//       io.to(`order_${data.id}`).emit('orderUpdated', data)
+//   });
+  
+//   eventEmitter.on('orderPlaced', (data) => {
+//       io.to('adminRoom').emit('orderPlaced', data);	
+//   })
